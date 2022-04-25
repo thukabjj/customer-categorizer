@@ -1,0 +1,16 @@
+version: '3.7'
+services:
+  customer-categorizer-app:
+    build: .
+    ports:
+      - 8080:8080
+    expose:
+      - "8080"
+    healthcheck:
+      test: [ "CMD","http://localhost:8080/" ]
+    networks:
+      spring-cloud-network:
+        aliases: 
+          - spring-boot-docker-container
+networks:
+    spring-cloud-network:

@@ -1,0 +1,105 @@
+plugins {
+	id 'org.springframework.boot' version '2.6.4'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+	id 'jacoco'
+}
+
+group = 'com.customer'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+apply plugin: 'java'
+apply plugin: 'jacoco'
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.6.6'
+	implementation  'io.springfox:springfox-boot-starter:3.0.0'
+	implementation 'org.xerial:sqlite-jdbc:3.36.0.3'
+	implementation 'com.github.gwenn:sqlite-dialect:0.1.2'
+
+	testImplementation 'org.jacoco:org.jacoco.core:0.8.7'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+}
+
+tasks.named('test') {
+	jacoco {
+		destinationFile = file("$buildDir/jacoco/jacoco.exec")
+	}
+	useJUnitPlatform()
+	finalizedBy 'jacocoTestReport'
+}
+
+
+jacoco {
+	toolVersion = "0.8.7"
+	reportsDirectory = layout.buildDirectory.dir("$buildDir/jacoco")
+}
+
+def jacocoExclusions = [
+		'**/*Application.class',
+		'**/infrastructure/**',
+		'**/domain/**',
+		'**/application/database/**',
+		'**/entrypoint/*/entity**',
+];
+
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = false
+		csv.required = false
+		html.outputLocation = layout.buildDirectory.dir('jacoco')
+	}
+
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it,
+					exclude: jacocoExclusions
+			)
+		}))
+	}
+	finalizedBy 'jacocoTestCoverageVerification'
+}
+
+jacocoTestCoverageVerification {
+
+	dependsOn test
+
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it,
+					exclude: jacocoExclusions
+			)
+		}))
+	}
+	violationRules {
+		rule {
+			excludes  = jacocoExclusions
+			limit {
+				minimum = 0.9
+			}
+		}
+
+		rule {
+			enabled = true
+			element = 'CLASS'
+			excludes  = jacocoExclusions
+
+			limit {
+				counter = 'BRANCH'
+				value = 'COVEREDRATIO'
+				minimum = 0.9
+			}
+		}
+	}
+
+}
+
+
+repositories {
+	mavenCentral()
+}

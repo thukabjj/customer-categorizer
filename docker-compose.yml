@@ -1,0 +1,40 @@
+version: '3.7'
+services:
+  customer-categorizer-backend-app:
+    container_name: customer-categorizer-backend-app
+    build:
+          context: ./customer-categorizer-backend/
+          dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    expose:
+      - "8080"
+    healthcheck:
+      test: [ "CMD","http://localhost:8080/" ]
+    networks:
+      spring-cloud-network:
+        aliases: 
+          - spring-boot-docker-container
+
+  customer-categorizer-frontend:
+        container_name: customer-categorizer-frontend
+        depends_on:
+          - customer-categorizer-backend-app
+        links:
+            - customer-categorizer-backend-app:customer-categorizer-backend-app
+        build:
+            context: ./customer-categorizer-frontend/
+            dockerfile: Dockerfile
+        volumes:
+            - './customer-categorizer-frontend:/app'
+            - '/app/node_modules'
+        ports:
+            - '3000:3000'
+        environment:
+            - REACT_APP_CUSTOMER_CATEGORIZER_URL=http://localhost:8080/api/customers/v1/categorized
+        networks:
+          spring-cloud-network:
+            aliases: 
+              - spring-boot-docker-container
+networks:
+    spring-cloud-network:

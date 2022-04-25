@@ -1,0 +1,14 @@
+version: '3.7'
+services:
+    customer-categorizer-frontend-app:
+        container_name: customer-categorizer-frontend-app
+        build:
+            context: .
+            dockerfile: Dockerfile
+        volumes:
+            - '.:/app'
+            - '/app/node_modules'
+        ports:
+            - '3000:3000'
+        environment:
+            - REACT_APP_CUSTOMER_CATEGORIZER_URL=http://localhost:8080/api/customers/v1/categorized
